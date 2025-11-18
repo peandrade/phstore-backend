@@ -82,6 +82,9 @@ model ProductMetadata {
   createdAt          DateTime @default(now())
   updateAt           DateTime @default(now()) @updatedAt
   Product            Product  @relation(fields: [productId], references: [id])
+
+  @@index([productId])
+  @@index([categoryMetadataId, metadataValueId])
 }
 
 model Category {
@@ -105,7 +108,7 @@ model CategoryMetadata {
 }
 
 model MetadataValue {
-  id                 Int              @id @default(autoincrement())
+  id                 String           @id @default(uuid())
   label              String
   categoryMetadataId String
   createdAt          DateTime         @default(now())

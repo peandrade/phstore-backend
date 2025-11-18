@@ -1,6 +1,6 @@
 import { RequestHandler } from "express";
-import { getAllBanners } from "../services/banner";
-import { getAbsoluteImgUrl } from "../utils/getAbsoluteImgUrl";
+import { getAllBanners } from "@/services/banner";
+import { getAbsoluteImgUrl } from "@/utils/getAbsoluteImgUrl";
 
 export const getBanners: RequestHandler = async (req, res) => {
     const banners = await getAllBanners();
