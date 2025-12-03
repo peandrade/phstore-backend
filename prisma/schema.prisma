@@ -19,7 +19,7 @@ model User {
   name      String
   email     String        @unique
   password  String
-  token     String?
+  token     String?       @unique
   createdAt DateTime      @default(now())
   updateAt  DateTime      @default(now()) @updatedAt
   addresses UserAddress[]
