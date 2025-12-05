@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { Address } from "@/types";
 import { compare, hash } from "bcryptjs";
 import { v4 } from "uuid";
 
@@ -48,4 +49,13 @@ export const getUserByToken = async (token: string) => {
   const user = await prisma.user.findUnique({ where: { token } });
   if (!user) return null;
   return user.id;
-}
+};
+
+export const createAddress = async (userId: number, address: Address) => {
+  return await prisma.userAddress.create({
+    data: {
+      ...address,
+      userId,
+    },
+  });
+};

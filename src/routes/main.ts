@@ -4,6 +4,7 @@ import * as productController from '@/controllers/product';
 import * as categoryController from '@/controllers/category';
 import * as cartController from '@/controllers/cart';
 import * as userController from '@/controllers/user';
+import { authMiddleware } from "@/middleware/auth";
 
 export const routes = Router();
 
@@ -20,3 +21,4 @@ routes.post('/cart/mount', cartController.cartMount);
 routes.get('/cart/shipping', cartController.calculateShipping);
 routes.post('/user/register', userController.register);
 routes.post('/user/login', userController.login);
+routes.post('/user/address', authMiddleware, userController.addAddress);
