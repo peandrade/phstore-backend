@@ -3,7 +3,14 @@
     "allow": [
       "Bash(npx prisma migrate:*)",
       "Bash(npx prisma db push:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(taskkill:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run:*)",
+      "Bash(node -e:*)"
     ],
     "deny": [],
     "ask": []
