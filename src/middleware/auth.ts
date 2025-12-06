@@ -1,8 +1,8 @@
 import { getUserByToken } from "@/services/user";
 import { AuthenticatedRequest } from "@/types/express";
-import { NextFunction, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 
-export const authMiddleware = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers['authorization'];
     if (!authHeader) return res.status(401).json({ error: 'Access denied' });
 
@@ -14,6 +14,6 @@ export const authMiddleware = async (req: AuthenticatedRequest, res: Response, n
     const userId = await getUserByToken(token);
     if (!userId) return res.status(401).json({ error: 'Access denied' });
 
-    req.userId = userId;
+    (req as AuthenticatedRequest).userId = userId;
     next();
 }

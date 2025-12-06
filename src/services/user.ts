@@ -59,3 +59,19 @@ export const createAddress = async (userId: number, address: Address) => {
     },
   });
 };
+
+export const getAddressesByUserId = async (userId: number) => {
+  return await prisma.userAddress.findMany({
+    where: { userId },
+    select: {
+      id: true,
+      zipcode: true,
+      street: true,
+      number: true,
+      city: true,
+      state: true,
+      country: true,
+      complement: true,
+    },
+  });
+};

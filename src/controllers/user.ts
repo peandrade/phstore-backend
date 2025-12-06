@@ -1,7 +1,7 @@
 import { addAddressSchema } from "@/schemas/addAddressSchema";
 import { loginSchema } from "@/schemas/loginSchema";
 import { registerSchema } from "@/schemas/registerSchema";
-import { createAddress, createUser, loginUser } from "@/services/user";
+import { createAddress, createUser, getAddressesByUserId, loginUser } from "@/services/user";
 import { AuthenticatedRequest } from "@/types/express";
 import { RequestHandler } from "express";
 
@@ -62,3 +62,17 @@ export const addAddress: RequestHandler = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const getAddresses: RequestHandler = async (req, res) => {
+  try {
+    const userId = (req as AuthenticatedRequest).userId;
+    if (!userId) return res.status(401).json({ error: "Access denied" });
+
+    const addresses = await getAddressesByUserId(userId);
+
+    res.json({ addresses });
+  } catch (error) {
+    console.error("Error in getAddresses:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}

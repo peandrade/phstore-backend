@@ -21,4 +21,5 @@ routes.post('/cart/mount', cartController.cartMount);
 routes.get('/cart/shipping', cartController.calculateShipping);
 routes.post('/user/register', userController.register);
 routes.post('/user/login', userController.login);
-routes.post('/user/address', authMiddleware, userController.addAddress);
+routes.post('/user/addresses', authMiddleware, userController.addAddress);
+routes.get('/user/addresses', authMiddleware, userController.getAddresses);

@@ -6,7 +6,7 @@ export const getCategoryWithMetadata: RequestHandler = async (req, res) => {
   const category = await getCategoryBySlug(slug);
 
   if (!category) {
-    return res.status(404).json({ error: "Product not found" });
+    return res.status(404).json({ error: "Category not found" });
   }
 
   const metadata = await getCategoryMetadata(category.id);

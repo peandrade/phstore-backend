@@ -6,7 +6,11 @@
       "Bash(cat:*)",
       "Bash(git checkout:*)",
       "Bash(git add:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run:*)",
+      "Bash(node -e:*)"
     ],
     "deny": [],
     "ask": []
