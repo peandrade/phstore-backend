@@ -75,3 +75,19 @@ export const getAddressesByUserId = async (userId: number) => {
     },
   });
 };
+
+export const getAddressesById = async (userId: number, addressId: number) => {
+  return prisma.userAddress.findFirst({
+    where: { id: addressId, userId },
+    select: {
+      id: true,
+      zipcode: true,
+      street: true,
+      number: true,
+      city: true,
+      state: true,
+      country: true,
+      complement: true,
+    },
+  });
+};
