@@ -3,6 +3,10 @@ import { getProduct } from "@/services/product";
 import { getAbsoluteImgUrl } from "@/utils/getAbsoluteImgUrl";
 import { RequestHandler } from "express";
 import { calculateShippingSchema } from "./../schemas/calculateShippingSchema";
+import { AuthenticatedRequest } from "@/types/express";
+import { cartFinishSchema } from "@/schemas/cartFinishSchema";
+import { getAddressesById } from "@/services/user";
+import { createOrder } from "@/services/order";
 
 export const cartMount: RequestHandler = async (req, res) => {
   try {
@@ -45,6 +49,48 @@ export const calculateShipping: RequestHandler = async (req, res) => {
     res.json({ error: null, zipcode, cost: 7, days: 3 });
   } catch (error) {
     console.error("Error in calculateShipping:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const finish: RequestHandler = async (req, res) => {
+  try {
+    const userId = (req as AuthenticatedRequest).userId;
+    if (!userId) return res.status(401).json({ error: "Access denied" });
+
+    const result = cartFinishSchema.safeParse(req.body);
+    if (!result.success)
+      return res.status(400).json({ error: "Invalid cart data" });
+
+    const { cart, addressId } = result.data;
+
+    const addressData = await getAddressesById(userId, addressId);
+    if (!addressData) return res.status(400).json({ error: "Invalid address" });
+
+    const shippingCost = 7; //TODO: Calculate based on addressData.zipcode
+    const shippingDays = 3; //TODO: Calculate based on addressData.zipcode
+
+    const orderId = await createOrder({
+      userId,
+      address: {
+        zipcode: addressData.zipcode,
+        street: addressData.street,
+        number: addressData.number,
+        city: addressData.city,
+        state: addressData.state,
+        country: addressData.country,
+        complement: addressData.complement,
+      },
+      shippingCost,
+      shippingDays,
+      cart
+    });
+
+    const url = ''; //TODO: Generate payment URL
+
+    res.status(201).json({ orderId, url });
+  } catch (error) {
+    console.error("Error in finish:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
