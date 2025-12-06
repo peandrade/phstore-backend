@@ -7,6 +7,7 @@ import { AuthenticatedRequest } from "@/types/express";
 import { cartFinishSchema } from "@/schemas/cartFinishSchema";
 import { getAddressesById } from "@/services/user";
 import { createOrder } from "@/services/order";
+import { createPaymentLink } from "@/services/payment";
 
 export const cartMount: RequestHandler = async (req, res) => {
   try {
@@ -86,7 +87,17 @@ export const finish: RequestHandler = async (req, res) => {
       cart
     });
 
-    const url = ''; //TODO: Generate payment URL
+    if (orderId === null || orderId === undefined) {
+      return res.status(500).json({ error: "Failed to create order" });
+    }
+
+    const url = await createPaymentLink({
+      cart, shippingCost, orderId
+    });
+
+    if (!url) {
+      return res.status(500).json({ error: "Failed to create payment link" });
+    }
 
     res.status(201).json({ orderId, url });
   } catch (error) {
