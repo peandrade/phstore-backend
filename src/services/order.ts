@@ -47,3 +47,25 @@ export const createOrder = async ({
   if (!order) return null;
   return order.id;
 };
+
+export const updateOrderStatus = async (orderId: number, status: 'paid'  | 'cancelled') => {
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId }
+    });
+
+    if (!order) {
+      throw new Error(`Order with ID ${orderId} not found`);
+    }
+
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { status }
+    });
+
+    console.log(`Order ${orderId} status updated to ${status}`);
+  } catch (error) {
+    console.error(`Failed to update order ${orderId}:`, error);
+    throw error;
+  }
+}
