@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { CreateOrderCart } from "@/types";
 import { getProduct } from "./product";
+import { logger } from "@/lib/logger";
 
 export const createOrder = async ({
   userId,
@@ -48,10 +49,7 @@ export const createOrder = async ({
   return order.id;
 };
 
-export const updateOrderStatus = async (
-  orderId: number,
-  status: "paid" | "cancelled"
-) => {
+export const updateOrderStatus = async (orderId: number, status: "paid" | "cancelled") => {
   try {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
@@ -66,9 +64,9 @@ export const updateOrderStatus = async (
       data: { status },
     });
 
-    console.log(`Order ${orderId} status updated to ${status}`);
+    logger.info({ orderId, status }, "Order status updated");
   } catch (error) {
-    console.error(`Failed to update order ${orderId}:`, error);
+    logger.error({ error, orderId, status }, "Failed to update order status");
     throw error;
   }
 };
@@ -123,17 +121,17 @@ export const getOrderById = async (id: number, userId: number) => {
       },
     },
   });
-  if(!order) return null;
+  if (!order) return null;
 
   return {
     ...order,
-    orderItems: order.orderItems.map(item => ({
+    orderItems: order.orderItems.map((item) => ({
       ...item,
       product: {
         ...item.product,
         image: item.product.images[0] ? `media/products/${item.product.images[0].url}` : null,
-        images: undefined
-      }
-    }))
-  }
+        images: undefined,
+      },
+    })),
+  };
 };

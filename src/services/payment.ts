@@ -1,14 +1,8 @@
-import {
-  createStripeCheckoutSession,
-  getStripeCheckoutSession,
-} from "@/lib/stripe";
+import { createStripeCheckoutSession, getStripeCheckoutSession } from "@/lib/stripe";
 import { CreatePayment } from "@/types";
+import { logger } from "@/lib/logger";
 
-export const createPaymentLink = async ({
-  cart,
-  shippingCost,
-  orderId,
-}: CreatePayment) => {
+export const createPaymentLink = async ({ cart, shippingCost, orderId }: CreatePayment) => {
   try {
     const session = await createStripeCheckoutSession({
       cart,
@@ -17,7 +11,7 @@ export const createPaymentLink = async ({
     });
     return session.url ?? null;
   } catch (error) {
-    console.error("Error creating payment link:", error);
+    logger.error({ error, orderId, cartLength: cart.length }, "Error creating payment link");
     return null;
   }
 };
@@ -30,7 +24,7 @@ export const getOrderIdFromSession = async (sessionId: string) => {
     if (!orderId) return null;
     return parseInt(orderId);
   } catch (error) {
-    console.error("Error to get a session id", error);
+    logger.error({ error, sessionId }, "Error getting order from session");
     return null;
   }
 };
