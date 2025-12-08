@@ -40,7 +40,7 @@ export const createOrder = async ({
       shippingState: address.state,
       shippingCountry: address.country,
       shippingComplement: address.complement,
-      orderItems: { create: orderItems }
+      orderItems: { create: orderItems },
     },
   });
 
@@ -48,10 +48,13 @@ export const createOrder = async ({
   return order.id;
 };
 
-export const updateOrderStatus = async (orderId: number, status: 'paid'  | 'cancelled') => {
+export const updateOrderStatus = async (
+  orderId: number,
+  status: "paid" | "cancelled"
+) => {
   try {
     const order = await prisma.order.findUnique({
-      where: { id: orderId }
+      where: { id: orderId },
     });
 
     if (!order) {
@@ -60,7 +63,7 @@ export const updateOrderStatus = async (orderId: number, status: 'paid'  | 'canc
 
     await prisma.order.update({
       where: { id: orderId },
-      data: { status }
+      data: { status },
     });
 
     console.log(`Order ${orderId} status updated to ${status}`);
@@ -68,4 +71,69 @@ export const updateOrderStatus = async (orderId: number, status: 'paid'  | 'canc
     console.error(`Failed to update order ${orderId}:`, error);
     throw error;
   }
-}
+};
+
+export const getUserOrders = async (userId: number) => {
+  return await prisma.order.findMany({
+    where: { userId },
+    select: {
+      id: true,
+      status: true,
+      total: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+};
+
+export const getOrderById = async (id: number, userId: number) => {
+  const order = await prisma.order.findFirst({
+    where: { id, userId },
+    select: {
+      id: true,
+      status: true,
+      total: true,
+      shippingCost: true,
+      shippingDays: true,
+      shippingCity: true,
+      shippingComplement: true,
+      shippingCountry: true,
+      shippingNumber: true,
+      shippingState: true,
+      shippingStreet: true,
+      shippingZipcode: true,
+      createdAt: true,
+      orderItems: {
+        select: {
+          id: true,
+          quantity: true,
+          price: true,
+          product: {
+            select: {
+              id: true,
+              label: true,
+              price: true,
+              images: {
+                take: 1,
+                orderBy: { id: "asc" },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+  if(!order) return null;
+
+  return {
+    ...order,
+    orderItems: order.orderItems.map(item => ({
+      ...item,
+      product: {
+        ...item.product,
+        image: item.product.images[0] ? `media/products/${item.product.images[0].url}` : null,
+        images: undefined
+      }
+    }))
+  }
+};
