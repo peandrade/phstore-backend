@@ -11,5 +11,5 @@ export const getCategoryWithMetadata: RequestHandler = async (req, res) => {
 
   const metadata = await getCategoryMetadata(category.id);
 
-  res.json({ error: null, category, metadata });
+  res.json({ category, metadata });
 };

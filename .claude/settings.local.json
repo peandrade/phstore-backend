@@ -12,7 +12,14 @@
       "Bash(npm run:*)",
       "Bash(node -e:*)",
       "Bash(git branch:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(wc -l \"C:\\Users\\z504328\\Desktop\\Projetos\\phstore-backend\\src\"/**/*.ts)",
+      "Bash(npm install:*)",
+      "Bash(curl:*)",
+      "Bash(for i in {1..7})",
+      "Bash(do curl -s -X POST http://localhost:4000/user/login -H \"Content-Type: application/json\" -d '{\"\"email\"\":\"\"test@test.com\"\",\"\"password\"\":\"\"test\"\"}' -w \"\\nRequest $i - Status: %{http_code}\\n\")",
+      "Bash(done)",
+      "Bash(openssl rand:*)"
     ],
     "deny": [],
     "ask": []

@@ -3,8 +3,11 @@ import { CreatePayment } from "@/types";
 import { getFrontendURL } from "@/utils/getFrontendUrl";
 import { getStripeKey } from "@/utils/getStripeKey";
 import Stripe from "stripe";
+import { logger } from "@/lib/logger";
 
-export const stripe = new Stripe(getStripeKey());
+export const stripe = new Stripe(getStripeKey(), {
+  apiVersion: "2025-10-29.clover",
+});
 
 export const createStripeCheckoutSession = async ({
   cart,
@@ -54,19 +57,15 @@ export const createStripeCheckoutSession = async ({
   return session;
 };
 
-export const getConstructEvent = async (
-  rawBody: string,
-  sig: string,
-  webhookKey: string
-) => {
+export const getConstructEvent = async (rawBody: string, sig: string, webhookKey: string) => {
   try {
     return stripe.webhooks.constructEvent(rawBody, sig, webhookKey);
   } catch (error) {
-    console.error('Failed to construct webhook event:', error instanceof Error ? error.message : error);
+    logger.error({ error, signature: sig }, "Failed to construct webhook event");
     return null;
   }
 };
 
 export const getStripeCheckoutSession = async (sessionId: string) => {
   return await stripe.checkout.sessions.retrieve(sessionId);
-}
+};

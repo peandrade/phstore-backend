@@ -28,7 +28,11 @@ export const getAllProducts = async (filters: ServiceProductFilters) => {
 
   let where: Prisma.ProductWhereInput = {};
 
-  if (filters.metadata && typeof filters.metadata === "object" && !Array.isArray(filters.metadata)) {
+  if (
+    filters.metadata &&
+    typeof filters.metadata === "object" &&
+    !Array.isArray(filters.metadata)
+  ) {
     let metaFilters = [];
     for (let categoryMetadataId in filters.metadata) {
       const value = filters.metadata[categoryMetadataId];
@@ -180,9 +184,9 @@ export const getProductsFromSameCategory = async (
     orderBy: { viewsCount: "desc" },
   });
 
-  return products.map(product => ({
+  return products.map((product) => ({
     ...product,
     image: product.images[0] ? `${PRODUCT_IMAGE_PATH}${product.images[0].url}` : null,
-    images: undefined
-  }))
+    images: undefined,
+  }));
 };

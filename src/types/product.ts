@@ -27,12 +27,10 @@ export type ProductFilters = {
 };
 
 export type ProductListResponse = {
-  error: null;
   products: Array<ProductListItem & { liked: boolean }>;
 };
 
 export type ProductDetailResponse = {
-  error: null;
   product: ProductDetail;
   category: Category | null;
 };

@@ -8,6 +8,8 @@ import { cartFinishSchema } from "@/schemas/cartFinishSchema";
 import { getAddressesById } from "@/services/user";
 import { createOrder } from "@/services/order";
 import { createPaymentLink } from "@/services/payment";
+import { logger } from "@/lib/logger";
+import { calculateShipping as calculateShippingService } from "@/services/shipping";
 
 export const cartMount: RequestHandler = async (req, res) => {
   try {
@@ -25,16 +27,14 @@ export const cartMount: RequestHandler = async (req, res) => {
           id: product.id,
           label: product.label,
           price: product.price,
-          image: product.images[0]
-            ? getAbsoluteImgUrl(product.images[0])
-            : null,
+          image: product.images[0] ? getAbsoluteImgUrl(product.images[0]) : null,
         });
       }
     }
 
-    res.json({ error: null, products });
+    res.json({ products });
   } catch (error) {
-    console.error("Error in cartMount:", error);
+    logger.error({ error, body: req.body }, "Error in cartMount");
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -47,9 +47,21 @@ export const calculateShipping: RequestHandler = async (req, res) => {
     }
     const { zipcode } = parseResult.data;
 
-    res.json({ error: null, zipcode, cost: 7, days: 3 });
+    const shipping = await calculateShippingService(zipcode);
+
+    if (!shipping) {
+      return res.status(400).json({ error: "Invalid zipcode or unable to calculate shipping" });
+    }
+
+    res.json({
+      zipcode,
+      cost: shipping.cost,
+      days: shipping.days,
+      city: shipping.city,
+      state: shipping.state,
+    });
   } catch (error) {
-    console.error("Error in calculateShipping:", error);
+    logger.error({ error, query: req.query }, "Error in calculateShipping");
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -60,16 +72,20 @@ export const finish: RequestHandler = async (req, res) => {
     if (!userId) return res.status(401).json({ error: "Access denied" });
 
     const result = cartFinishSchema.safeParse(req.body);
-    if (!result.success)
-      return res.status(400).json({ error: "Invalid cart data" });
+    if (!result.success) return res.status(400).json({ error: "Invalid cart data" });
 
     const { cart, addressId } = result.data;
 
     const addressData = await getAddressesById(userId, addressId);
     if (!addressData) return res.status(400).json({ error: "Invalid address" });
 
-    const shippingCost = 7; //TODO: Calculate based on addressData.zipcode
-    const shippingDays = 3; //TODO: Calculate based on addressData.zipcode
+    const shipping = await calculateShippingService(addressData.zipcode);
+    if (!shipping) {
+      return res.status(400).json({ error: "Unable to calculate shipping for this address" });
+    }
+
+    const shippingCost = shipping.cost;
+    const shippingDays = shipping.days;
 
     const orderId = await createOrder({
       userId,
@@ -84,7 +100,7 @@ export const finish: RequestHandler = async (req, res) => {
       },
       shippingCost,
       shippingDays,
-      cart
+      cart,
     });
 
     if (orderId === null || orderId === undefined) {
@@ -92,8 +108,12 @@ export const finish: RequestHandler = async (req, res) => {
     }
 
     const url = await createPaymentLink({
-      cart, shippingCost, orderId
+      cart,
+      shippingCost,
+      orderId,
     });
+
+    console.log(`Aqui esta a url: ${url}`);
 
     if (!url) {
       return res.status(500).json({ error: "Failed to create payment link" });
@@ -101,7 +121,7 @@ export const finish: RequestHandler = async (req, res) => {
 
     res.status(201).json({ orderId, url });
   } catch (error) {
-    console.error("Error in finish:", error);
+    logger.error({ error, userId: (req as AuthenticatedRequest).userId }, "Error in finish");
     res.status(500).json({ error: "Internal server error" });
   }
 };
