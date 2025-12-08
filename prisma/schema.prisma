@@ -15,15 +15,15 @@ datasource db {
 }
 
 model User {
-  id        Int           @id @default(autoincrement())
-  name      String
-  email     String        @unique
-  password  String
-  token     String?
-  createdAt DateTime      @default(now())
-  updateAt  DateTime      @default(now()) @updatedAt
-  addresses UserAddress[]
-  orders    Order[]
+  id            Int            @id @default(autoincrement())
+  name          String
+  email         String         @unique
+  password      String
+  createdAt     DateTime       @default(now())
+  updateAt      DateTime       @default(now()) @updatedAt
+  addresses     UserAddress[]
+  orders        Order[]
+  refreshTokens RefreshToken[]
 }
 
 model UserAddress {
@@ -38,7 +38,9 @@ model UserAddress {
   complement String?
   createdAt  DateTime @default(now())
   updateAt   DateTime @default(now()) @updatedAt
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Banner {
@@ -82,6 +84,9 @@ model ProductMetadata {
   createdAt          DateTime @default(now())
   updateAt           DateTime @default(now()) @updatedAt
   Product            Product  @relation(fields: [productId], references: [id])
+
+  @@index([productId])
+  @@index([categoryMetadataId, metadataValueId])
 }
 
 model Category {
@@ -105,7 +110,7 @@ model CategoryMetadata {
 }
 
 model MetadataValue {
-  id                 Int              @id @default(autoincrement())
+  id                 String           @id @default(uuid())
   label              String
   categoryMetadataId String
   createdAt          DateTime         @default(now())
@@ -143,4 +148,26 @@ model OrderProduct {
   updateAt  DateTime @default(now()) @updatedAt
   order     Order    @relation(fields: [orderId], references: [id])
   product   Product  @relation(fields: [productId], references: [id])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    Int
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+}
+
+model TokenBlacklist {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([expiresAt])
 }

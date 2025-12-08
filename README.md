@@ -5,6 +5,7 @@ This document describes all available API routes, their parameters, request/resp
 ---
 
 ## Table of Contents
+
 - [General](#general)
 - [Banners](#banners)
 - [Products](#products)
@@ -19,6 +20,7 @@ This document describes all available API routes, their parameters, request/resp
 ## General
 
 ### `GET /ping`
+
 - **Description:** Health check endpoint.
 - **Auth:** None
 - **Response:**
@@ -31,6 +33,7 @@ This document describes all available API routes, their parameters, request/resp
 ## Banners
 
 ### `GET /banners`
+
 - **Description:** Get all banners.
 - **Auth:** None
 - **Response:**
@@ -51,14 +54,15 @@ This document describes all available API routes, their parameters, request/resp
 ## Products
 
 ### `GET /products`
+
 - **Description:** List products with optional filters.
 - **Auth:** None
 - **Query Parameters:**
-  | Name     | Type   | Required | Description                      |
+  | Name | Type | Required | Description |
   | -------- | ------ | -------- | -------------------------------- |
-  | metadata | string | No       | JSON string of metadata filters  |
-  | orderBy  | string | No       | "views", "selling", or "price"   |
-  | limit    | string | No       | Max number of products to return |
+  | metadata | string | No | JSON string of metadata filters |
+  | orderBy | string | No | "views", "selling", or "price" |
+  | limit | string | No | Max number of products to return |
 - **Response:**
   ```json
   {
@@ -76,12 +80,13 @@ This document describes all available API routes, their parameters, request/resp
   ```
 
 ### `GET /product/:id`
+
 - **Description:** Get a single product by ID.
 - **Auth:** None
 - **Params:**
-  | Name | Type             | Required |
+  | Name | Type | Required |
   | ---- | ---------------- | -------- |
-  | id   | string (numeric) | Yes      |
+  | id | string (numeric) | Yes |
 - **Response:**
   ```json
   {
@@ -103,16 +108,17 @@ This document describes all available API routes, their parameters, request/resp
   ```
 
 ### `GET /product/:id/related`
+
 - **Description:** Get related products from the same category.
 - **Auth:** None
 - **Params:**
-  | Name | Type             | Required |
+  | Name | Type | Required |
   | ---- | ---------------- | -------- |
-  | id   | string (numeric) | Yes      |
+  | id | string (numeric) | Yes |
 - **Query:**
-  | Name  | Type             | Required |
+  | Name | Type | Required |
   | ----- | ---------------- | -------- |
-  | limit | string (numeric) | No       |
+  | limit | string (numeric) | No |
 - **Response:**
   ```json
   {
@@ -126,12 +132,13 @@ This document describes all available API routes, their parameters, request/resp
 ## Categories
 
 ### `GET /category/:slug/metadata`
+
 - **Description:** Get category and its metadata by slug.
 - **Auth:** None
 - **Params:**
-  | Name | Type   | Required |
+  | Name | Type | Required |
   | ---- | ------ | -------- |
-  | slug | string | Yes      |
+  | slug | string | Yes |
 - **Response:**
   ```json
   {
@@ -145,9 +152,7 @@ This document describes all available API routes, their parameters, request/resp
       {
         "id": "meta_id",
         "name": "Meta Name",
-        "values": [
-          { "id": "value_id", "label": "Value Label" }
-        ]
+        "values": [{ "id": "value_id", "label": "Value Label" }]
       }
     ]
   }
@@ -158,6 +163,7 @@ This document describes all available API routes, their parameters, request/resp
 ## Cart
 
 ### `POST /cart/mount`
+
 - **Description:** Get product details for a list of product IDs.
 - **Auth:** None
 - **Body:**
@@ -180,31 +186,37 @@ This document describes all available API routes, their parameters, request/resp
   ```
 
 ### `GET /cart/shipping`
-- **Description:** Calculate shipping cost and days for a zipcode.
+
+- **Description:** Calculate shipping cost and days for a zipcode using ViaCEP API.
 - **Auth:** None
 - **Query:**
-  | Name    | Type   | Required |
+  | Name | Type | Required |
   | ------- | ------ | -------- |
-  | zipcode | string | Yes      |
+  | zipcode | string | Yes |
 - **Response:**
   ```json
   {
-    "error": null,
-    "zipcode": "12345-678",
+    "zipcode": "01310100",
     "cost": 7,
-    "days": 3
+    "days": 3,
+    "city": "São Paulo",
+    "state": "SP"
   }
   ```
+- **Shipping Zones:**
+  - Zone 1 (Southeast: SP, RJ, MG, ES): R$7, 3 days
+  - Zone 2 (South/Central-West): R$12, 5 days
+  - Zone 3 (Northeast): R$15, 7 days
+  - Zone 4 (North): R$20, 10 days
 
 ### `POST /cart/finish`
+
 - **Description:** Finish the cart and create an order (returns Stripe checkout URL).
 - **Auth:** Yes (Bearer token)
 - **Body:**
   ```json
   {
-    "cart": [
-      { "productId": 1, "quantity": 2 }
-    ],
+    "cart": [{ "productId": 1, "quantity": 2 }],
     "addressId": 1
   }
   ```
@@ -221,6 +233,7 @@ This document describes all available API routes, their parameters, request/resp
 ## User
 
 ### `POST /user/register`
+
 - **Description:** Register a new user.
 - **Auth:** None
 - **Body:**
@@ -244,7 +257,8 @@ This document describes all available API routes, their parameters, request/resp
   ```
 
 ### `POST /user/login`
-- **Description:** Login and receive a token.
+
+- **Description:** Login and receive JWT tokens (access + refresh).
 - **Auth:** None
 - **Body:**
   ```json
@@ -256,12 +270,47 @@ This document describes all available API routes, their parameters, request/resp
 - **Response:**
   ```json
   {
-    "error": null,
-    "token": "<uuid>"
+    "accessToken": "<jwt-access-token>",
+    "refreshToken": "<jwt-refresh-token>"
+  }
+  ```
+
+### `POST /user/refresh`
+
+- **Description:** Refresh the access token using a valid refresh token.
+- **Auth:** None
+- **Body:**
+  ```json
+  {
+    "refreshToken": "<jwt-refresh-token>"
+  }
+  ```
+- **Response:**
+  ```json
+  {
+    "accessToken": "<new-jwt-access-token>"
+  }
+  ```
+
+### `POST /user/logout`
+
+- **Description:** Logout and invalidate the refresh token.
+- **Auth:** None
+- **Body:**
+  ```json
+  {
+    "refreshToken": "<jwt-refresh-token>"
+  }
+  ```
+- **Response:**
+  ```json
+  {
+    "message": "Logged out successfully"
   }
   ```
 
 ### `GET /user/addresses`
+
 - **Description:** Get all addresses for the logged-in user.
 - **Auth:** Yes (Bearer token)
 - **Response:**
@@ -284,6 +333,7 @@ This document describes all available API routes, their parameters, request/resp
   ```
 
 ### `POST /user/addresses`
+
 - **Description:** Add a new address for the logged-in user.
 - **Auth:** Yes (Bearer token)
 - **Body:**
@@ -320,6 +370,7 @@ This document describes all available API routes, their parameters, request/resp
 ## Orders
 
 ### `GET /orders`
+
 - **Description:** List all orders for the logged-in user.
 - **Auth:** Yes (Bearer token)
 - **Response:**
@@ -338,12 +389,13 @@ This document describes all available API routes, their parameters, request/resp
   ```
 
 ### `GET /orders/:id`
+
 - **Description:** Get details of a specific order by ID for the logged-in user.
 - **Auth:** Yes (Bearer token)
 - **Params:**
-  | Name | Type             | Required |
+  | Name | Type | Required |
   | ---- | ---------------- | -------- |
-  | id   | string (numeric) | Yes      |
+  | id | string (numeric) | Yes |
 - **Response:**
   ```json
   {
@@ -380,12 +432,13 @@ This document describes all available API routes, their parameters, request/resp
   ```
 
 ### `GET /orders/session`
+
 - **Description:** Get order ID by Stripe session ID.
 - **Auth:** None
 - **Query:**
-  | Name       | Type   | Required | Description                |
+  | Name | Type | Required | Description |
   | ---------- | ------ | -------- | -------------------------- |
-  | session_id | string | Yes      | Stripe checkout session ID |
+  | session_id | string | Yes | Stripe checkout session ID |
 - **Response:**
   ```json
   {
@@ -399,6 +452,7 @@ This document describes all available API routes, their parameters, request/resp
 ## Webhooks
 
 ### `POST /webhook/stripe`
+
 - **Description:** Handle Stripe payment events and update order statuses.
 - **Auth:** None (verified via Stripe signature)
 - **Purpose:** Processes Stripe webhook events to automatically update order statuses
@@ -416,11 +470,29 @@ This document describes all available API routes, their parameters, request/resp
 
 ## Authentication
 
-Some endpoints require authentication via a Bearer token. Pass the token in the `Authorization` header:
+This API uses **JWT (JSON Web Token)** authentication with access and refresh tokens.
 
-```
-Authorization: Bearer <token>
-```
+### Token Types
+
+1. **Access Token**: Short-lived token (15 minutes) used for authenticating API requests
+2. **Refresh Token**: Long-lived token (7 days) used to obtain new access tokens
+
+### How to Authenticate
+
+1. **Login** via `POST /user/login` to receive both tokens
+2. **Use Access Token** for authenticated requests:
+   ```
+   Authorization: Bearer <access-token>
+   ```
+3. **Refresh** the access token when it expires using `POST /user/refresh`
+4. **Logout** via `POST /user/logout` to invalidate the refresh token
+
+### Token Security
+
+- Access tokens expire after 15 minutes
+- Refresh tokens expire after 7 days
+- Refresh tokens are stored in the database and can be revoked
+- Logged out tokens are blacklisted to prevent reuse
 
 ---
 
@@ -464,6 +536,7 @@ STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
 ### Security
 
 The webhook endpoint verifies the Stripe signature to ensure requests are legitimate. Make sure to:
+
 - Keep your `STRIPE_WEBHOOK_SECRET` secure
 - Use HTTPS in production
-- Never expose the webhook secret in client-side code 
+- Never expose the webhook secret in client-side code
