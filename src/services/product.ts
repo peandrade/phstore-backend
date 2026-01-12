@@ -6,6 +6,7 @@ type ServiceProductFilters = {
   metadata?: { [key: string]: string };
   order?: string;
   limit?: number;
+  categorySlug?: string;
 };
 
 export const getAllProducts = async (filters: ServiceProductFilters) => {
@@ -27,6 +28,12 @@ export const getAllProducts = async (filters: ServiceProductFilters) => {
   }
 
   let where: Prisma.ProductWhereInput = {};
+
+  if (filters.categorySlug) {
+    where.category = {
+      slug: filters.categorySlug,
+    };
+  }
 
   if (
     filters.metadata &&

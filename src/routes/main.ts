@@ -8,6 +8,7 @@ import * as webhookController from "@/controllers/webhook";
 import * as orderController from "@/controllers/order";
 import { authMiddleware } from "@/middleware/auth";
 import { authRateLimiter, checkoutRateLimiter } from "@/middleware/rateLimiter";
+import { getKits, getOneKit, getKitBySlugController } from "@/controllers/kits";
 
 export const routes = Router();
 
@@ -33,3 +34,6 @@ routes.post("/webhook/stripe", webhookController.stripe);
 routes.get("/orders/session", orderController.getOrderBySessionId);
 routes.get("/orders", authMiddleware, orderController.listOrders);
 routes.get("/orders/:id", authMiddleware, orderController.getOrder);
+routes.get("/kits", getKits);
+routes.get("/kit/:id", getOneKit);
+routes.get("/kit/slug/:slug", getKitBySlugController);
