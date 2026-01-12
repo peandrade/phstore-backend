@@ -16,7 +16,7 @@ import { NotFoundError, BadRequestError } from "@/lib/errors";
 
 export const getProducts: RequestHandler = async (req, res, next) => {
   try {
-    const { metadata, orderBy, limit } = getProductSchema.parse(req.query);
+    const { metadata, orderBy, limit, categorySlug } = getProductSchema.parse(req.query);
 
     let parsedMetadata;
     if (metadata) {
@@ -31,6 +31,7 @@ export const getProducts: RequestHandler = async (req, res, next) => {
       metadata: parsedMetadata,
       order: orderBy,
       limit,
+      categorySlug
     });
 
     const productsWithUrl = products.map((product) => ({

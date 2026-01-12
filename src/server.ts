@@ -8,28 +8,34 @@ import { requestLogger } from "@/middleware/requestLogger";
 import { errorHandler, notFoundHandler } from "@/middleware/errorHandler";
 import { globalRateLimiter } from "@/middleware/rateLimiter";
 
-// Validate environment variables before starting the server
 validateEnv();
 
 const server = express();
-server.use(cors());
+
+const allowedOrigins = [
+  "http://localhost:3000"
+].filter(Boolean) as string[];
+
+server.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
+
 server.use(express.static("public"));
 
-// Global rate limiter (must be before other middleware that could cause errors)
 server.use(globalRateLimiter);
 
 server.use("/webhook/stripe", express.raw({ type: "application/json" }));
 server.use(express.json());
 
-// Request logging middleware (logs all HTTP requests)
 server.use(requestLogger);
 
 server.use(routes);
 
-// 404 handler for undefined routes (must be after all routes)
 server.use(notFoundHandler);
 
-// Global error handler (must be last)
 server.use(errorHandler);
 
 server.listen(4000, () => {
