@@ -49,7 +49,10 @@ export const createOrder = async ({
   return order.id;
 };
 
-export const updateOrderStatus = async (orderId: number, status: "paid" | "cancelled") => {
+export const updateOrderStatus = async (
+  orderId: number,
+  status: "paid" | "cancelled" | "refunded"
+) => {
   try {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
@@ -71,6 +74,32 @@ export const updateOrderStatus = async (orderId: number, status: "paid" | "cance
   }
 };
 
+export const refundOrder = async (orderId: number, userId: number) => {
+  const order = await prisma.order.findFirst({
+    where: { id: orderId, userId },
+  });
+
+  if (!order) {
+    return { success: false, error: "Pedido não encontrado" };
+  }
+
+  if (order.status !== "paid") {
+    return {
+      success: false,
+      error: "Apenas pedidos pagos podem ser reembolsados",
+    };
+  }
+
+  await prisma.order.update({
+    where: { id: orderId },
+    data: { status: "refunded" },
+  });
+
+  logger.info({ orderId, userId }, "Order refunded successfully");
+
+  return { success: true };
+};
+
 export const getUserOrders = async (userId: number) => {
   return await prisma.order.findMany({
     where: { userId },
@@ -82,6 +111,43 @@ export const getUserOrders = async (userId: number) => {
     },
     orderBy: { createdAt: "desc" },
   });
+};
+
+export const getOrderForRetryPayment = async (orderId: number, userId: number) => {
+  const order = await prisma.order.findFirst({
+    where: { id: orderId, userId },
+    select: {
+      id: true,
+      status: true,
+      shippingCost: true,
+      orderItems: {
+        select: {
+          productId: true,
+          quantity: true,
+        },
+      },
+    },
+  });
+
+  if (!order) {
+    return { success: false, error: "Pedido não encontrado" };
+  }
+
+  if (order.status !== "pending") {
+    return { success: false, error: "Este pedido não está pendente de pagamento" };
+  }
+
+  return {
+    success: true,
+    order: {
+      id: order.id,
+      shippingCost: order.shippingCost,
+      cart: order.orderItems.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+      })),
+    },
+  };
 };
 
 export const getOrderById = async (id: number, userId: number) => {
@@ -129,7 +195,9 @@ export const getOrderById = async (id: number, userId: number) => {
       ...item,
       product: {
         ...item.product,
-        image: item.product.images[0] ? `media/products/${item.product.images[0].url}` : null,
+        image: item.product.images[0]
+          ? `media/products/${item.product.images[0].url}`
+          : null,
         images: undefined,
       },
     })),

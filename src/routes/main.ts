@@ -36,6 +36,8 @@ routes.post("/webhook/stripe", webhookController.stripe);
 routes.get("/orders/session", orderController.getOrderBySessionId);
 routes.get("/orders", authMiddleware, orderController.listOrders);
 routes.get("/orders/:id", authMiddleware, orderController.getOrder);
+routes.post("/orders/:id/refund", authMiddleware, orderController.requestRefund);
+routes.post("/orders/:id/retry-payment", authMiddleware, orderController.retryPayment);
 routes.get("/kits", getKits);
 routes.get("/kit/:id", getOneKit);
 routes.get("/kit/slug/:slug", getKitBySlugController);
