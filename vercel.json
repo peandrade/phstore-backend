@@ -1,20 +1,15 @@
 {
   "version": 2,
+  "framework": null,
   "buildCommand": "npm run vercel-build",
-  "builds": [
-    {
-      "src": "dist/api/index.js",
-      "use": "@vercel/node"
+  "installCommand": "npm install",
+  "functions": {
+    "dist/api/index.js": {
+      "memory": 1024,
+      "maxDuration": 30
     }
-  ],
-  "routes": [
-    {
-      "src": "/public/(.*)",
-      "dest": "/public/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "dist/api/index.js"
-    }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/dist/api/index.js" }
   ]
 }
