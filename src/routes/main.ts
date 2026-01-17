@@ -6,8 +6,11 @@ import * as cartController from "@/controllers/cart";
 import * as userController from "@/controllers/user";
 import * as webhookController from "@/controllers/webhook";
 import * as orderController from "@/controllers/order";
+import * as likeController from "@/controllers/like";
+import * as searchController from "@/controllers/search";
 import { authMiddleware } from "@/middleware/auth";
 import { authRateLimiter, checkoutRateLimiter } from "@/middleware/rateLimiter";
+import { getKits, getOneKit, getKitBySlugController } from "@/controllers/kits";
 
 export const routes = Router();
 
@@ -33,3 +36,12 @@ routes.post("/webhook/stripe", webhookController.stripe);
 routes.get("/orders/session", orderController.getOrderBySessionId);
 routes.get("/orders", authMiddleware, orderController.listOrders);
 routes.get("/orders/:id", authMiddleware, orderController.getOrder);
+routes.post("/orders/:id/refund", authMiddleware, orderController.requestRefund);
+routes.post("/orders/:id/retry-payment", authMiddleware, orderController.retryPayment);
+routes.get("/kits", getKits);
+routes.get("/kit/:id", getOneKit);
+routes.get("/kit/slug/:slug", getKitBySlugController);
+routes.get("/user/likes", authMiddleware, likeController.getUserLikes);
+routes.post("/products/:productId/like", authMiddleware, likeController.toggleLike);
+routes.get("/products/:productId/like", authMiddleware, likeController.checkLike);
+routes.get("/search", searchController.search);

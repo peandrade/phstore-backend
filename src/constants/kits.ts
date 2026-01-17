@@ -1,0 +1,1 @@
+export const KIT_IMAGE_PATH = "/media/kits/";

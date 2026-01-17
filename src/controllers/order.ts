@@ -1,11 +1,12 @@
 import { getOrderBySessionIdSchema } from "@/schemas/getOrderBySessionIdSchema";
 import { getOrderSchema } from "@/schemas/getOrderSchema";
-import { getOrderById, getUserOrders } from "@/services/order";
+import { getOrderById, getUserOrders, refundOrder, getOrderForRetryPayment } from "@/services/order";
 import { getOrderIdFromSession } from "@/services/payment";
+import { createPaymentLink } from "@/services/payment";
 import { AuthenticatedRequest } from "@/types";
 import { getAbsoluteImgUrl } from "@/utils/getAbsoluteImgUrl";
 import { RequestHandler } from "express";
-import { NotFoundError, UnauthorizedError } from "@/lib/errors";
+import { NotFoundError, UnauthorizedError, BadRequestError } from "@/lib/errors";
 
 export const getOrderBySessionId: RequestHandler = async (req, res, next) => {
   try {
@@ -55,6 +56,52 @@ export const listOrders: RequestHandler = async (req, res, next) => {
 
     const orders = await getUserOrders(userId);
     res.json({ orders });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const requestRefund: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = (req as AuthenticatedRequest).userId;
+    if (!userId) throw new UnauthorizedError("Access denied");
+
+    const { id } = getOrderSchema.parse(req.params);
+    const result = await refundOrder(parseInt(id), userId);
+
+    if (!result.success) {
+      throw new BadRequestError(result.error || "Erro ao processar reembolso");
+    }
+
+    res.json({ success: true, message: "Reembolso solicitado com sucesso" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const retryPayment: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = (req as AuthenticatedRequest).userId;
+    if (!userId) throw new UnauthorizedError("Access denied");
+
+    const { id } = getOrderSchema.parse(req.params);
+    const result = await getOrderForRetryPayment(parseInt(id), userId);
+
+    if (!result.success || !result.order) {
+      throw new BadRequestError(result.error || "Erro ao processar pagamento");
+    }
+
+    const paymentUrl = await createPaymentLink({
+      cart: result.order.cart,
+      shippingCost: result.order.shippingCost,
+      orderId: result.order.id,
+    });
+
+    if (!paymentUrl) {
+      throw new BadRequestError("Erro ao criar link de pagamento");
+    }
+
+    res.json({ success: true, paymentUrl });
   } catch (error) {
     next(error);
   }
