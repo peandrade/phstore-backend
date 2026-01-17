@@ -1,5 +1,5 @@
-// Register path aliases before any other imports
-import "tsconfig-paths/register";
+// Register module aliases before any other imports
+import "module-alias/register";
 
 // Import the Express app
 import app from "../src/server";
