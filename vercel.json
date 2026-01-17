@@ -1,15 +1,5 @@
 {
-  "version": 2,
-  "framework": null,
-  "buildCommand": "npm run vercel-build",
-  "installCommand": "npm install",
-  "functions": {
-    "dist/api/index.js": {
-      "memory": 1024,
-      "maxDuration": 30
-    }
-  },
   "rewrites": [
-    { "source": "/(.*)", "destination": "/dist/api/index.js" }
+    { "source": "/(.*)", "destination": "/api" }
   ]
 }
