@@ -7,7 +7,7 @@ import { z } from "zod";
 const envSchema = z.object({
   // Server configuration
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
-  BASE_URL: z.string().url().default("http://localhost:4000"),
+  BASE_URL: z.string().url().default("https://phstore-backend-production.up.railway.app"),
 
   // Frontend configuration
   FRONTEND_URL: z.string().url({
