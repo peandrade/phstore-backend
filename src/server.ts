@@ -48,12 +48,13 @@ server.use(notFoundHandler);
 
 server.use(errorHandler);
 
-// Only listen when running locally (not in Vercel serverless)
-if (process.env.NODE_ENV !== "production") {
-  server.listen(4000, () => {
-    logger.info("PHstore backend running on port 4000");
+const isVercel = process.env.VERCEL === "1";
+
+if (!isVercel) {
+  const PORT = process.env.PORT || 4000;
+  server.listen(PORT, () => {
+    logger.info(`PHstore backend running on port ${PORT}`);
   });
 }
 
-// Export for Vercel serverless
 export default server;
