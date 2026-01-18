@@ -1,3 +1,3 @@
 export const getBaseUrl = () => {
-  return process.env.BASE_URL ?? "http://localhost:4000";
+  return process.env.BASE_URL ?? "https://phstore-backend-production.up.railway.app";
 };
