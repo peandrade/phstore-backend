@@ -37,8 +37,13 @@ server.use(express.static("public"));
 
 server.use(globalRateLimiter);
 
-server.use("/webhook/stripe", express.raw({ type: "application/json" }));
-server.use(express.json());
+server.use((req, res, next) => {
+  if (req.originalUrl === "/webhook/stripe") {
+    express.raw({ type: "application/json" })(req, res, next);
+  } else {
+    express.json()(req, res, next);
+  }
+});
 
 server.use(requestLogger);
 
