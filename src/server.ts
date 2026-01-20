@@ -12,6 +12,8 @@ validateEnv();
 
 const server = express();
 
+server.set("trust proxy", 1);
+
 const allowedOrigins = [
   "http://localhost:3000",
   process.env.FRONTEND_URL,

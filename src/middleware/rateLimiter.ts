@@ -26,6 +26,7 @@ export const globalRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   handler: rateLimitHandler,
+  skip: (req) => req.path === "/webhook/stripe",
 });
 
 

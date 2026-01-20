@@ -32,6 +32,7 @@ routes.post("/user/logout", userController.logout);
 routes.post("/user/addresses", authMiddleware, userController.addAddress);
 routes.get("/user/addresses", authMiddleware, userController.getAddresses);
 routes.post("/cart/finish", authMiddleware, checkoutRateLimiter, cartController.finish);
+routes.options("/webhook/stripe", (req, res) => res.sendStatus(200));
 routes.post("/webhook/stripe", webhookController.stripe);
 routes.get("/orders/session", orderController.getOrderBySessionId);
 routes.get("/orders", authMiddleware, orderController.listOrders);
